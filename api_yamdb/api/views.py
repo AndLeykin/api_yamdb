@@ -1,11 +1,52 @@
-from rest_framework import permissions, viewsets
+from rest_framework import permissions, viewsets, filters
 from rest_framework.pagination import LimitOffsetPagination
 
-from reviews.models import Comment, Review
-from .permissions import IsAuthor, IsAuthorOrModeratorOrAdmin
-# Create your views here.
-from .serializers import (CommentSerializer,
-                          ReviewSerializer)
+from reviews.models import Comment, Review, Category, Genre, Title
+from .permissions import (
+    IsAuthorOrModeratorOrAdmin,
+    IsAdminOrReadOnlyPermission
+)
+from .serializers import (
+    CommentSerializer,
+    ReviewSerializer,
+    CategorySerializer,
+    GenreSerializer,
+    TitleWriteSerializer,
+    TitleReadSerializer,
+)
+
+
+class CategoryViewSet(viewsets.ModelViewSet):
+    queryset = Category.objects.all()
+    serializer_class = CategorySerializer
+    permission_classes = (IsAdminOrReadOnlyPermission,)
+    # Здесь надо выяснитить, какую пагинацию делаем
+    # pagination_class = LimitOffsetPagination
+    filter_backends = (filters.SearchFilter,)
+    search_fields = ('name',)
+
+
+class GenreViewSet(viewsets.ModelViewSet):
+    queryset = Genre.objects.all()
+    serializer_class = GenreSerializer
+    permission_classes = (IsAdminOrReadOnlyPermission,)
+    # Здесь надо выяснитить, какую пагинацию делаем
+    # pagination_class = LimitOffsetPagination
+    filter_backends = (filters.SearchFilter,)
+    search_fields = ('name',)
+
+
+class TitleViewSet(viewsets.ModelViewSet):
+    queryset = Title.objects.all()
+    permission_classes = (IsAdminOrReadOnlyPermission,)
+    # Здесь надо выяснитить, какую пагинацию делаем
+    # pagination_class = LimitOffsetPagination
+    # Не пойму, здесь нужен вообще фильтр или нет. Вроде нигде не просят
+
+    def get_serializer_class(self):
+        if self.action in ('list', 'retrieve'):
+            return TitleReadSerializer
+        return TitleWriteSerializer
 
 
 class ReviewViewSet(viewsets.ModelViewSet):
