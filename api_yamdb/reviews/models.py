@@ -1,30 +1,10 @@
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
-from django.contrib.auth.models import AbstractUser
+
+from users.models import User
 
 BIG_LENGTH = 256
 SMALL_LENGH = 50
-
-
-class User(AbstractUser):
-    class Role(models.TextChoices):
-        ADMIN = "admin", "admin"
-        MODERATOR = "moderator", "moderator"
-        USER = "user", "user"
-
-    role = models.TextField(choices=Role.choices, default=Role.USER)
-    bio = models.TextField(null=True)
-
-    # Посоветовал добавить наставник в пачке
-    # Функция является свойством proprty => ее можно вызывать
-    # как отребут объекта, а не как метод
-    @property
-    def is_admin(self):
-        """Проверяет,является ли пользователь администратором"""
-        return (
-            self.role == 'admin'
-            or self.is_superuser
-        )
 
 
 class Category(models.Model):
@@ -86,8 +66,9 @@ class GenreTitle(models.Model):
 
 
 class Review(models.Model):
-    title_id = models.ForeignKey(
-        Title, on_delete=models.CASCADE, related_name='reviews'
+    title = models.ForeignKey(
+        Title, on_delete=models.CASCADE, related_name='reviews',
+        db_column='title_id',
     )
     author = models.ForeignKey(
         User, on_delete=models.CASCADE, related_name='reviews'

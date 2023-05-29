@@ -10,7 +10,7 @@ class CategorySerializer(serializers.ModelSerializer):
     """Сериализатор категорий."""
 
     class Meta:
-        fields = '__all__'
+        fields = ('name', 'slug')
         model = Category
 
 
@@ -18,7 +18,7 @@ class GenreSerializer(serializers.ModelSerializer):
     """Сериализатор жанров."""
 
     class Meta:
-        fields = '__all__'
+        fields = ('name', 'slug')
         model = Genre
 
 
@@ -34,7 +34,7 @@ class TitleWriteSerializer(serializers.ModelSerializer):
         slug_field='slug'
     )
     category = serializers.SlugRelatedField(
-        queryset=Genre.objects.all(),
+        queryset=Category.objects.all(),
         slug_field='slug'
     )
 

@@ -34,6 +34,14 @@ class User(AbstractUser):
         blank=True,
     )
 
+    @property
+    def is_admin(self):
+        """Проверяет, является ли пользователь администратором"""
+        return (
+            self.role == 'admin'
+            or self.is_superuser
+        )
+
     class Meta:
         constraints = [
             models.CheckConstraint(
