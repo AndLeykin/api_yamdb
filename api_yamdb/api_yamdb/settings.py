@@ -1,4 +1,6 @@
 from pathlib import Path
+from datetime import timedelta
+import os
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -15,6 +17,7 @@ ALLOWED_HOSTS = ['*']
 INSTALLED_APPS = [
     'reviews.apps.ReviewsConfig',
     'api.apps.ApiConfig',
+    'users.apps.UsersConfig',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -104,11 +107,19 @@ REST_FRAMEWORK = {
     'DEFAULT_PERMISSION_CLASSES': [
         'rest_framework.permissions.IsAuthenticated',
     ],
-
     'DEFAULT_AUTHENTICATION_CLASSES': [
         'rest_framework_simplejwt.authentication.JWTAuthentication',
     ],
-    'PAGE_SIZE': None,
+    'PAGE_SIZE': 5,
 }
 
-AUTH_USER_MODEL = 'reviews.User'
+SIMPLE_JWT = {
+    'ACCESS_TOKEN_LIFETIME': timedelta(days=7),
+    'AUTH_HEADER_TYPES': ('Bearer',),
+    "TOKEN_OBTAIN_SERIALIZER": "users.serializers.CustomTokenObtainSerializer",
+}
+
+AUTH_USER_MODEL = 'users.User'
+
+EMAIL_BACKEND = 'django.core.mail.backends.filebased.EmailBackend'
+EMAIL_FILE_PATH = os.path.join(BASE_DIR, 'sent_emails')
