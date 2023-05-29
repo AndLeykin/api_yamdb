@@ -9,17 +9,13 @@ from .views import (
 )
 
 
-router = routers.DefaultRouter()
-router.register('users', UsersViewSet)
+router_v1_users = routers.DefaultRouter()
+router_v1_users.register('users', UsersViewSet)
 
 
 urlpatterns = [
-    path(
-        'auth/token/',
-        token_obtain_view,
-        name='token_obtain'
-    ),
+    path('auth/token/', token_obtain_view, name='token_obtain'),
     path('auth/signup/', signup_view, name='signup'),
-    path('users/me/', MeView.as_view(), name='self_view'),
-    path('', include(router.urls)),
+    path('users/me/', MeView.as_view(), name='me_view'),
+    path('', include(router_v1_users.urls)),
 ]

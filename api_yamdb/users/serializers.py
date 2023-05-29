@@ -48,7 +48,7 @@ class UserSerializer(serializers.ModelSerializer):
         return value
 
 
-class UserSelfSerializer(UserSerializer):
+class MeUserSerializer(UserSerializer):
     class Meta:
         model = User
         fields = (
@@ -70,13 +70,11 @@ class AuthSerializer(serializers.Serializer):
                 not re.match(r'^[\w.@+-]+\Z', username)):
             raise serializers.ValidationError(
                 detail={'username': USERNAME_ERROR})
-        if User.objects.filter(email=email).exists() and (
-                not User.objects.filter(username=username).exists()
-        ):
-            raise serializers.ValidationError(
-                detail={'email': EMAIL_USED_ERROR})
         user = get_user(username)
         if user and user.email != email:
             raise serializers.ValidationError(
                 detail={'email': EMAIL_INCORRECT_ERROR})
+        if User.objects.filter(email=email).exists() and not user:
+            raise serializers.ValidationError(
+                detail={'email': EMAIL_USED_ERROR})
         return data
