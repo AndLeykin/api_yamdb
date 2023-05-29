@@ -21,7 +21,7 @@ class CategoryViewSet(viewsets.ModelViewSet):
     serializer_class = CategorySerializer
     permission_classes = (IsAdminOrReadOnlyPermission,)
     # Здесь надо выяснитить, какую пагинацию делаем
-    # pagination_class = LimitOffsetPagination
+    pagination_class = LimitOffsetPagination
     filter_backends = (filters.SearchFilter,)
     search_fields = ('name',)
 
@@ -31,7 +31,7 @@ class GenreViewSet(viewsets.ModelViewSet):
     serializer_class = GenreSerializer
     permission_classes = (IsAdminOrReadOnlyPermission,)
     # Здесь надо выяснитить, какую пагинацию делаем
-    # pagination_class = LimitOffsetPagination
+    pagination_class = LimitOffsetPagination
     filter_backends = (filters.SearchFilter,)
     search_fields = ('name',)
 
@@ -40,7 +40,7 @@ class TitleViewSet(viewsets.ModelViewSet):
     queryset = Title.objects.all()
     permission_classes = (IsAdminOrReadOnlyPermission,)
     # Здесь надо выяснитить, какую пагинацию делаем
-    # pagination_class = LimitOffsetPagination
+    pagination_class = LimitOffsetPagination
     # Не пойму, здесь нужен вообще фильтр или нет. Вроде нигде не просят
 
     def get_serializer_class(self):
