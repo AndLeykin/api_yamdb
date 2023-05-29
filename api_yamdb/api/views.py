@@ -1,21 +1,15 @@
-from rest_framework import permissions, status, viewsets, filters
+from rest_framework import filters, permissions, status, viewsets
 from rest_framework.pagination import LimitOffsetPagination
-
-from reviews.models import Comment, Review, Category, Genre, Title
-from .mixins import ListAddDeleteViewset
-from .permissions import (
-    IsAuthorOrModeratorOrAdmin,
-    IsAdminOrReadOnlyPermission
-)
-from .serializers import (
-    CommentSerializer,
-    ReviewSerializer,
-    CategorySerializer,
-    GenreSerializer,
-    TitleWriteSerializer,
-    TitleReadSerializer,
-)
 from rest_framework.response import Response
+
+from reviews.models import Category, Comment, Genre, Review, Title
+from .mixins import ListAddDeleteViewset
+from .permissions import (IsAdminOrReadOnlyPermission,
+                          IsAuthorOrModeratorOrAdmin)
+from .serializers import (CategorySerializer, CommentSerializer,
+                          GenreSerializer, ReviewSerializer,
+                          TitleReadSerializer, TitleWriteSerializer)
+
 
 class CategoryViewSet(ListAddDeleteViewset):
     queryset = Category.objects.all()
@@ -45,7 +39,6 @@ class TitleViewSet(viewsets.ModelViewSet):
     # Не пойму, здесь нужен вообще фильтр или нет. Вроде нигде не просят
     filter_backends = (filters.SearchFilter,)
     search_fields = ('genre',)
-
 
     def get_serializer_class(self):
         if self.action in ('list', 'retrieve'):
@@ -82,7 +75,6 @@ class ReviewViewSet(viewsets.ModelViewSet):
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-
     def get_permissions(self):
         # Если в GET-запросе требуется получить информацию об объекте
         if self.action in ['update', 'destroy', 'partial_update']:
@@ -118,7 +110,9 @@ class CommentViewSet(viewsets.ModelViewSet):
             return Response(status=status.HTTP_404_NOT_FOUND)
 
         try:
-            review = Review.objects.get(pk=self.kwargs.get("review_id"), title_id=title.pk)
+            review = Review.objects.get(
+                pk=self.kwargs.get("review_id"), title_id=title.pk
+            )
         except Review.DoesNotExist:
             return Response(status=status.HTTP_404_NOT_FOUND)
 

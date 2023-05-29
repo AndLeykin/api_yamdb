@@ -331,6 +331,7 @@ class Test06CommentAPI:
             '/api/v1/titles/{title_id}/reviews/'
             '{review_id}/comments/{comment_id}/'
         )
+
         new_data = {'text': 'update'}
 
         response = client.get(
@@ -345,6 +346,20 @@ class Test06CommentAPI:
             f'`{url}` возвращает ответ со статусом 200.'
         )
 
+        url_create = (
+            '/api/v1/titles/{title_id}/reviews/{review_id}/comments/'
+        )
+        response = client.post(
+            url_create.format(
+                title_id=titles[0]['id'],
+                review_id=reviews[0]['id'],
+            ),
+            data=new_data
+        )
+        assert response.status_code == HTTPStatus.UNAUTHORIZED, (
+            'Проверьте, что POST-запрос неавторизованного пользователя к '
+            f'`{url}` возвращает ответ со статусом 401.'
+        )
         response = client.patch(
             url.format(
                 title_id=titles[0]['id'],
