@@ -1,6 +1,7 @@
 from rest_framework import permissions, status, viewsets, filters
 from rest_framework.pagination import LimitOffsetPagination
 from rest_framework.response import Response
+from django_filters.rest_framework import DjangoFilterBackend
 
 from reviews.models import Comment, Review, Category, Genre, Title
 from .mixins import ListAddDeleteViewset
@@ -16,6 +17,7 @@ from .serializers import (
     TitleWriteSerializer,
     TitleReadSerializer,
 )
+from .filters import GenreFilter
 
 
 class CategoryViewSet(ListAddDeleteViewset):
@@ -42,8 +44,8 @@ class TitleViewSet(viewsets.ModelViewSet):
     queryset = Title.objects.all()
     permission_classes = (IsAdminOrReadOnlyPermission,)
     pagination_class = LimitOffsetPagination
-    filter_backends = (filters.SearchFilter,)
-    search_fields = ('genre',)
+    filter_backends = [DjangoFilterBackend]
+    filterset_class = GenreFilter
 
     def get_serializer_class(self):
         if self.action in ('list', 'retrieve'):

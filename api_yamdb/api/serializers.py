@@ -7,7 +7,6 @@ from reviews.models import Comment, Review, Category, Genre, Title
 
 
 class CategorySerializer(serializers.ModelSerializer):
-    """Сериализатор категорий."""
 
     class Meta:
         fields = ('name', 'slug')
@@ -15,7 +14,6 @@ class CategorySerializer(serializers.ModelSerializer):
 
 
 class GenreSerializer(serializers.ModelSerializer):
-    """Сериализатор жанров."""
 
     class Meta:
         fields = ('name', 'slug')
@@ -23,11 +21,6 @@ class GenreSerializer(serializers.ModelSerializer):
 
 
 class TitleWriteSerializer(serializers.ModelSerializer):
-    """Сериализатор произведений.
-    Для пост запросов.
-    """
-    # Тут какой то головняк. В пачке увидел совет наставниика, что надо делать
-    # два сериализатора - для чтения и записи.
     genre = serializers.SlugRelatedField(
         many=True,
         queryset=Genre.objects.all(),
@@ -50,9 +43,6 @@ class TitleWriteSerializer(serializers.ModelSerializer):
 
 
 class TitleReadSerializer(serializers.ModelSerializer):
-    """Сериализатор произведений."""
-    # Махинации с вложенными сериализаторами делаются, чтобы апи
-    # выдавала строку из связанной модели, а не цифру слага
     genre = GenreSerializer(read_only=True, many=True)
     category = CategorySerializer(read_only=True)
     rating = serializers.SerializerMethodField()
