@@ -42,19 +42,15 @@ class TitleWriteSerializer(serializers.ModelSerializer):
         fields = '__all__'
         model = Title
 
-    # Это чтобы неьлзя было добавить произведение будущего года
     def validate_year(self, value):
         year = dt.date.today().year
-        if not (value <= year):
+        if value > year:
             raise serializers.ValidationError('Проверьте год произведения!')
         return value
 
 
 class TitleReadSerializer(serializers.ModelSerializer):
-    """Сериализатор произведений.
-    Пока решил сделать два сер. для  одного вьюсета. Спр. 8 ур.12.
-    PS Сериализаторы для связанных моделей
-    """
+    """Сериализатор произведений."""
     # Махинации с вложенными сериализаторами делаются, чтобы апи
     # выдавала строку из связанной модели, а не цифру слага
     genre = GenreSerializer(read_only=True, many=True)
@@ -73,7 +69,6 @@ class TitleReadSerializer(serializers.ModelSerializer):
         )
         model = Title
 
-    # PS сериализаторы доп возможности
     def get_rating(self, obj):
         rating = (
             obj.reviews.filter(title=obj)

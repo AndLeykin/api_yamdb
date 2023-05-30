@@ -1,5 +1,6 @@
 from rest_framework import permissions, status, viewsets, filters
 from rest_framework.pagination import LimitOffsetPagination
+from rest_framework.response import Response
 
 from reviews.models import Comment, Review, Category, Genre, Title
 from .mixins import ListAddDeleteViewset
@@ -15,7 +16,7 @@ from .serializers import (
     TitleWriteSerializer,
     TitleReadSerializer,
 )
-from rest_framework.response import Response
+
 
 class CategoryViewSet(ListAddDeleteViewset):
     queryset = Category.objects.all()
@@ -40,12 +41,9 @@ class GenreViewSet(ListAddDeleteViewset):
 class TitleViewSet(viewsets.ModelViewSet):
     queryset = Title.objects.all()
     permission_classes = (IsAdminOrReadOnlyPermission,)
-    # Здесь надо выяснитить, какую пагинацию делаем
     pagination_class = LimitOffsetPagination
-    # Не пойму, здесь нужен вообще фильтр или нет. Вроде нигде не просят
     filter_backends = (filters.SearchFilter,)
     search_fields = ('genre',)
-
 
     def get_serializer_class(self):
         if self.action in ('list', 'retrieve'):
@@ -67,7 +65,6 @@ class ReviewViewSet(viewsets.ModelViewSet):
             title = Title.objects.get(pk=self.kwargs.get("title_id"))
         except Title.DoesNotExist:
             return Response(status=status.HTTP_404_NOT_FOUND)
-
         if serializer.is_valid(raise_exception=False):
             try:
                 serializer.save(
@@ -79,12 +76,9 @@ class ReviewViewSet(viewsets.ModelViewSet):
                 )
             except Exception:
                 pass
-
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-
     def get_permissions(self):
-        # Если в GET-запросе требуется получить информацию об объекте
         if self.action in ['update', 'destroy', 'partial_update']:
             return (IsAuthorOrModeratorOrAdmin(),)
         elif self.action in ['create']:
@@ -96,6 +90,7 @@ class CommentViewSet(viewsets.ModelViewSet):
     serializer_class = CommentSerializer
     pagination_class = LimitOffsetPagination
     permission_classes = (permissions.AllowAny,)
+    http_method_names = ['get', 'post', 'patch', 'delete']
 
     def get_queryset(self):
         return Comment.objects.filter(
@@ -118,7 +113,8 @@ class CommentViewSet(viewsets.ModelViewSet):
             return Response(status=status.HTTP_404_NOT_FOUND)
 
         try:
-            review = Review.objects.get(pk=self.kwargs.get("review_id"), title_id=title.pk)
+            review = Review.objects.get(
+                pk=self.kwargs.get("review_id"), title_id=title.pk)
         except Review.DoesNotExist:
             return Response(status=status.HTTP_404_NOT_FOUND)
 
@@ -137,9 +133,8 @@ class CommentViewSet(viewsets.ModelViewSet):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     def get_permissions(self):
-        # Если в GET-запросе требуется получить информацию об объекте
-        if self.action in ['update', 'destroy', 'partial_update']:
-            return (IsAuthorOrModeratorOrAdmin(),)
-        elif self.action in ['create']:
+        if self.request.method == 'POST':
             return (permissions.IsAuthenticated(),)
+        elif self.request.method in ['PATCH', 'DELETE']:
+            return (IsAuthorOrModeratorOrAdmin(),)
         return super().get_permissions()

@@ -345,6 +345,18 @@ class Test06CommentAPI:
             f'`{url}` возвращает ответ со статусом 200.'
         )
 
+        response = client.post(
+            url.format(
+                title_id=titles[0]['id'],
+                review_id=reviews[0]['id'],
+                comment_id=comments[1]['id']
+            ),
+            data=new_data
+        )
+        assert response.status_code == HTTPStatus.UNAUTHORIZED, (
+            'Проверьте, что POST-запрос неавторизованного пользователя к '
+            f'`{url}` возвращает ответ со статусом 401.'
+        )
         response = client.patch(
             url.format(
                 title_id=titles[0]['id'],
