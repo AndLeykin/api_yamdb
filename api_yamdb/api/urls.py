@@ -9,15 +9,15 @@ app_name = 'api'
 
 router_v1 = SimpleRouter()
 
-router_v1.register('v1/users', UsersViewSet, basename='user')
-router_v1.register('v1/categories', CategoryViewSet, basename='category')
-router_v1.register('v1/genres', GenreViewSet, basename='genre')
-router_v1.register('v1/titles', TitleViewSet, basename='title')
+router_v1.register('users', UsersViewSet, basename='user')
+router_v1.register('categories', CategoryViewSet, basename='category')
+router_v1.register('genres', GenreViewSet, basename='genre')
+router_v1.register('titles', TitleViewSet, basename='title')
 router_v1.register(
-    r'v1/titles/(?P<title_id>\d+)/reviews', ReviewViewSet, basename='review'
+    r'titles/(?P<title_id>\d+)/reviews', ReviewViewSet, basename='review'
 )
 router_v1.register(
-    r'v1/titles/(?P<title_id>\d+)/reviews/(?P<review_id>\d+)/comments',
+    r'titles/(?P<title_id>\d+)/reviews/(?P<review_id>\d+)/comments',
     CommentViewSet, basename='comment'
 )
 
@@ -25,5 +25,5 @@ urlpatterns = [
     path('v1/auth/token/', token_obtain_view, name='token_obtain'),
     path('v1/auth/signup/', signup_view, name='signup'),
     path('v1/users/me/', MeView.as_view(), name='me_view'),
-    path('', include(router_v1.urls)),
+    path('v1/', include(router_v1.urls)),
 ]
