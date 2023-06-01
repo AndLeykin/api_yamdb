@@ -2,21 +2,25 @@ from rest_framework import serializers
 from rest_framework.validators import UniqueValidator
 import re
 
-from .models import User, SECRET_KEY_MAX_LENGTH, USERNAME_MAX_LENGTH
+from .models import (
+    User,
+    SECRET_KEY_MAX_LENGTH,
+    USERNAME_MAX_LENGTH,
+    EMAIL_MAX_LENGTH
+)
 
-
-EMAIL_MAX_LENGTH = 254
 
 USERNAME_ERROR = 'Недопустимое имя пользователя.'
 EMAIL_USED_ERROR = 'Эта почта уже используется.'
-EMAIL_INCORRECT_ERROR = 'Неверная почта.'
+USER_INCORRECT_EMAIL_ERROR = (
+    'Данный пользователь зарегистрирован с другой почтой.')
 
 
 def get_user(username):
-    try:
+    # return User.objects.filter(username=username).first()
+    if User.objects.filter(username=username).exists():
         return User.objects.get(username=username)
-    except User.DoesNotExist:
-        return None
+    return None
 
 
 class CustomTokenSerializer(serializers.Serializer):
@@ -73,7 +77,7 @@ class AuthSerializer(serializers.Serializer):
         user = get_user(username)
         if user and user.email != email:
             raise serializers.ValidationError(
-                detail={'email': EMAIL_INCORRECT_ERROR})
+                detail={'username': USER_INCORRECT_EMAIL_ERROR})
         if User.objects.filter(email=email).exists() and not user:
             raise serializers.ValidationError(
                 detail={'email': EMAIL_USED_ERROR})
