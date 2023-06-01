@@ -2,11 +2,13 @@ from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 
 from users.models import User
+from .validators import validate_year
 
 NAME_MAX_LENGTH = 256
 SLUG_MAX_LENGTH = 50
 MIN_SCORE = 1
 MAX_SCORE = 10
+FOR_STR = 25
 
 
 class Category(models.Model):
@@ -20,7 +22,7 @@ class Category(models.Model):
         verbose_name_plural = 'категории'
 
     def __str__(self):
-        return self.name
+        return self.name[:FOR_STR]
 
 
 class Genre(models.Model):
@@ -34,13 +36,16 @@ class Genre(models.Model):
         verbose_name_plural = 'жанры'
 
     def __str__(self):
-        return self.name
+        return self.name[:FOR_STR]
 
 
 class Title(models.Model):
     name = models.CharField('Название', max_length=NAME_MAX_LENGTH)
-    year = models.PositiveIntegerField('Год создания', )
-    description = models.TextField('Описание', blank=True, null=True)
+    year = models.PositiveSmallIntegerField(
+        'Год  создания',
+        validators=[validate_year]
+    )
+    description = models.TextField('Описание', blank=True)
     genre = models.ManyToManyField(Genre, through='GenreTitle')
     category = models.ForeignKey(
         Category,
@@ -54,7 +59,7 @@ class Title(models.Model):
         verbose_name_plural = 'произведения'
 
     def __str__(self):
-        return self.name
+        return self.name[:FOR_STR]
 
 
 class GenreTitle(models.Model):
@@ -80,13 +85,13 @@ class Review(models.Model):
         on_delete=models.CASCADE,
         related_name='reviews',
         db_column='title_id',
-        verbose_name=' id произведения',
+        verbose_name='Произведение',
     )
     author = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
         related_name='reviews',
-        verbose_name='пользователь',
+        verbose_name='Пользователь',
     )
     text = models.TextField('Текст', )
     score = models.PositiveSmallIntegerField(
