@@ -1,4 +1,4 @@
-from django.core.management.utils import get_random_secret_key
+from django.contrib.auth.tokens import default_token_generator
 from django.core.mail import send_mail
 from rest_framework.viewsets import ModelViewSet
 from rest_framework.permissions import AllowAny
@@ -6,7 +6,6 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework.filters import SearchFilter
-from rest_framework.pagination import PageNumberPagination
 from rest_framework.generics import RetrieveUpdateAPIView
 from rest_framework import status
 
@@ -23,12 +22,16 @@ from .permissions import AdminPermission
 
 SERVICE_MAIL = 'from@yambd.ru'
 
-USER_DOES_NOT_EXIST_ERROR = 'Пользователя с такими данными не существует.'
-CONFIRMATION_INCORRECT_ERROR = 'Неверный код подтверждения.'
+USER_DOES_NOT_EXIST_ERROR = {
+    'username': ['Пользователя с такими данными не существует.']
+}
+CONFIRMATION_INCORRECT_ERROR = {
+    'confirmation_code': ['Неверный код подтверждения.']
+}
 
 
-def send_confirmation_code(email):
-    confirmation_code = get_random_secret_key()
+def send_confirmation_code(user, email):
+    confirmation_code = default_token_generator.make_token(user)
     send_mail(
         'Confirmation code YamDB',
         f'Ваш код подтверждения: {confirmation_code}',
@@ -36,7 +39,6 @@ def send_confirmation_code(email):
         [email],
         fail_silently=False,
     )
-    return confirmation_code
 
 
 def get_token_for_user(user):
@@ -55,7 +57,7 @@ def signup_view(request):
         email = serializer.validated_data.get('email')
         user, created = User.objects.get_or_create(username=username,
                                                    email=email)
-        user.confirmation_code = send_confirmation_code(email)
+        send_confirmation_code(user, email)
         user.save()
         return Response(serializer.validated_data)
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
@@ -70,11 +72,11 @@ def token_obtain_view(request):
         confirmation_code = serializer.validated_data.get('confirmation_code')
         user = get_user(username)
         if not user:
-            return Response({USER_DOES_NOT_EXIST_ERROR},
+            return Response(USER_DOES_NOT_EXIST_ERROR,
                             status=status.HTTP_404_NOT_FOUND)
-        elif user.confirmation_code == confirmation_code:
+        elif default_token_generator.check_token(user, confirmation_code):
             return Response(get_token_for_user(user))
-        return Response({CONFIRMATION_INCORRECT_ERROR},
+        return Response(CONFIRMATION_INCORRECT_ERROR,
                         status=status.HTTP_400_BAD_REQUEST)
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
@@ -83,7 +85,6 @@ class UsersViewSet(ModelViewSet):
     queryset = User.objects.all()
     serializer_class = UserSerializer
     permission_classes = (AdminPermission,)
-    pagination_class = PageNumberPagination
     filter_backends = (SearchFilter,)
     search_fields = ('username',)
     lookup_field = 'username'
