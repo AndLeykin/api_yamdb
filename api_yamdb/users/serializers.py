@@ -17,7 +17,6 @@ USER_INCORRECT_EMAIL_ERROR = (
 
 
 def get_user(username):
-    # return User.objects.filter(username=username).first()
     if User.objects.filter(username=username).exists():
         return User.objects.get(username=username)
     return None
