@@ -84,7 +84,6 @@ class Review(models.Model):
         Title,
         on_delete=models.CASCADE,
         related_name='reviews',
-        db_column='title_id',
         verbose_name='Произведение',
     )
     author = models.ForeignKey(
