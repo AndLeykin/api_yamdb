@@ -60,7 +60,7 @@ python3 manage.py createsuperuser
 Заполнить базу данных из csv-файлов:
 
 ```
-python3 manage.py fill db
+python3 manage.py filldb
 ```
 Опции заполнения:
 ```
