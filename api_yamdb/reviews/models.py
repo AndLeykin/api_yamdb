@@ -42,7 +42,7 @@ class Genre(models.Model):
 class Title(models.Model):
     name = models.CharField('Название', max_length=NAME_MAX_LENGTH)
     year = models.PositiveSmallIntegerField(
-        'Год  создания',
+        'Год создания',
         validators=[validate_year]
     )
     description = models.TextField('Описание', blank=True)
