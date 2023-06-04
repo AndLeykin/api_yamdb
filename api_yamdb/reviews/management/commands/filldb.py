@@ -70,7 +70,7 @@ def fill_title(line, *args, **kwargs):
         id=line['id'],
         name=line['name'],
         year=line['year'],
-        category=Category(id=line['category']),
+        category_id=line['category'],
     )
     instance.save()
 
@@ -78,8 +78,8 @@ def fill_title(line, *args, **kwargs):
 def fill_genre_title(line, *args, **kwargs):
     instance = GenreTitle(
         id=line['id'],
-        title=Title(id=line['title_id']),
-        genre=Genre(id=line['genre_id']),
+        title_id=line['title_id'],
+        genre_id=line['genre_id'],
     )
     instance.save()
 
@@ -89,7 +89,7 @@ def fill_review(line, *args, **kwargs):
         id=line['id'],
         title_id=line['title_id'],
         text=line['text'],
-        author=User(id=line['author']),
+        author_id=line['author'],
         score=line['score'],
         pub_date=line['pub_date'],
     )
@@ -99,9 +99,9 @@ def fill_review(line, *args, **kwargs):
 def fill_comment(line, *args, **kwargs):
     instance = Comment(
         id=line['id'],
-        review_id=Review(id=line['review_id']),
+        review_id=line['review_id'],
         text=line['text'],
-        author=User(id=line['author']),
+        author_id=line['author'],
         pub_date=line['pub_date'],
     )
     instance.save()
