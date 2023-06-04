@@ -3,7 +3,8 @@ from django.db.models import Avg
 
 import datetime as dt
 
-from reviews.models import Comment, Review, Category, Genre, Title
+from reviews.models import Comment, Review, Category, Genre, Title, GenreTitle
+from reviews.validators import MIN_YEAR
 
 
 class CategorySerializer(serializers.ModelSerializer):
@@ -45,7 +46,7 @@ class TitleWriteSerializer(serializers.ModelSerializer):
 
     def validate_year(self, value):
         year = dt.date.today().year
-        if value > year or value < 0:
+        if value > year or value < MIN_YEAR:
             raise serializers.ValidationError('Проверьте год произведения!')
         return value
 
@@ -53,6 +54,18 @@ class TitleWriteSerializer(serializers.ModelSerializer):
         if not value:
             raise serializers.ValidationError('Необходимо указать жанр.')
         return value
+
+    def to_representation(self, instance):
+        representation = super().to_representation(instance)
+        genre_title_query = GenreTitle.objects.filter(title=instance.id)
+        representation['genre'] = []
+        for genre_title_instance in genre_title_query:
+            genre_representation = [genre_title_instance.genre.name,
+                                    genre_title_instance.genre.slug]
+            representation['genre'].append(genre_representation)
+        representation['category'] = [instance.category.name,
+                                      instance.category.slug]
+        return representation
 
 
 class TitleReadSerializer(serializers.ModelSerializer):
@@ -90,7 +103,6 @@ class ReviewSerializer(serializers.ModelSerializer):
     class Meta:
         model = Review
         fields = ('id', 'text', 'score', 'author', 'pub_date')
-        read_only_fields = ('title_id',)
 
 
 class CommentSerializer(serializers.ModelSerializer):
@@ -99,4 +111,3 @@ class CommentSerializer(serializers.ModelSerializer):
     class Meta:
         model = Comment
         fields = ('id', 'text', 'author', 'pub_date')
-        read_only_fields = ('review_id',)

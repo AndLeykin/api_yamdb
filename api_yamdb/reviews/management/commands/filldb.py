@@ -78,8 +78,8 @@ def fill_title(line, *args, **kwargs):
 def fill_genre_title(line, *args, **kwargs):
     instance = GenreTitle(
         id=line['id'],
-        title_id=Title(id=line['title_id']),
-        genre_id=Genre(id=line['genre_id']),
+        title=Title(id=line['title_id']),
+        genre=Genre(id=line['genre_id']),
     )
     instance.save()
 

@@ -70,7 +70,7 @@ class GenreTitle(models.Model):
     class Meta:
         constraints = [
             models.UniqueConstraint(
-                fields=['title_id', 'genre_id'],
+                fields=['title', 'genre'],
                 name='unique_genre_and_title'
             )
         ]
@@ -106,7 +106,7 @@ class Review(models.Model):
         constraints = [
             models.UniqueConstraint(
                 name="author_and_title_unique",
-                fields=["author", "title_id"],
+                fields=["author", "title"],
             ),
         ]
         verbose_name = 'отзыв'
@@ -121,7 +121,7 @@ class Comment(models.Model):
         Review,
         on_delete=models.CASCADE,
         related_name='comments',
-        verbose_name=' id отзыва'
+        verbose_name='Отзыв'
     )
     author = models.ForeignKey(
         User,
