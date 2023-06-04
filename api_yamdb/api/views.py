@@ -41,7 +41,7 @@ class GenreViewSet(ListAddDeleteViewset):
 class TitleViewSet(viewsets.ModelViewSet):
     queryset = Title.objects.all()
     permission_classes = (IsAdminOrReadOnlyPermission,)
-    filter_backends = (DjangoFilterBackend, )
+    filter_backends = (DjangoFilterBackend,)
     filterset_class = GenreFilter
 
     def get_serializer_class(self):

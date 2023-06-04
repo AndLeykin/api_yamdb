@@ -68,7 +68,6 @@ python3 manage.py filldb
 --genre
 --user
 --title
---genre_title
 --review
 ```
 

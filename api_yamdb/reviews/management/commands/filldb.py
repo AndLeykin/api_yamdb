@@ -24,11 +24,10 @@ FILES_CSV = {
     'comment': PATH_DATA + 'comments.csv',
 }
 OPTIONS = {
-    'category': ['category', 'genre_title', 'title', 'review'],
-    'genre': ['genre', 'genre_title', 'review'],
+    'category': ['category', 'title', 'review'],
+    'genre': ['genre', 'title', 'review'],
     'user': ['user', 'review'],
-    'title': ['genre_title', 'title', 'review'],
-    'genre_title': ['genre_title', 'review'],
+    'title': ['title', 'review'],
     'review': ['review'],
 }
 
@@ -129,12 +128,6 @@ class Command(BaseCommand):
             '--title',
             action='store_true',
             help=('Заполняет раздел "Произведения" базы данных, '
-                  'также заполняется раздел "Категории"'),
-        )
-        parser.add_argument(
-            '--genre_title',
-            action='store_true',
-            help=('Заполняет раздел "Жанры произведений" базы данных, '
                   'также заполняются разделы "Категории", "Жанры" '
                   ' и "Произведения"'),
         )
@@ -148,7 +141,6 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         no_options = all(
             not options[option] for option in OPTIONS.keys())
-        print(no_options)
         if any(
             options[option] for option in OPTIONS['category']
         ) or (no_options):
@@ -165,9 +157,6 @@ class Command(BaseCommand):
             options[option] for option in OPTIONS['title']
         ) or no_options:
             fill(fill_title, FILES_CSV['title'])
-        if any(
-            options[option] for option in OPTIONS['genre_title']
-        ) or (no_options):
             fill(fill_genre_title, FILES_CSV['genre_title'])
         if any(
             options[option] for option in OPTIONS['review']
