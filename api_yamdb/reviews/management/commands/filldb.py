@@ -40,6 +40,7 @@ def fill(create_model, path_file, CurrentModel=None):
                 create_model(line, CurrentModel)
         except Exception as error:
             print(error)
+    print('Перенесены данные из файла ', path_file)
 
 
 def fill_category_genre(line, CurrentModel):
@@ -128,8 +129,7 @@ class Command(BaseCommand):
             '--title',
             action='store_true',
             help=('Заполняет раздел "Произведения" базы данных, '
-                  'также заполняются разделы "Категории", "Жанры" '
-                  ' и "Произведения"'),
+                  'также заполняются разделы "Категории" и "Жанры"'),
         )
         parser.add_argument(
             '--review',
