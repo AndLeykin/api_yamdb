@@ -1,13 +1,13 @@
-from rest_framework import permissions, status, viewsets, filters
-from rest_framework.pagination import LimitOffsetPagination
-from rest_framework.response import Response
+from django.db import IntegrityError
+from django.http import Http404
+from rest_framework import viewsets, filters
+from rest_framework.exceptions import ValidationError
 from django_filters.rest_framework import DjangoFilterBackend
 
 from reviews.models import Comment, Review, Category, Genre, Title
 from .mixins import ListAddDeleteViewset
 from .permissions import (
-    IsAuthorOrModeratorOrAdmin,
-    IsAdminOrReadOnlyPermission
+    IsAdminOrReadOnlyPermission, ReviewAndComments
 )
 from .serializers import (
     CommentSerializer,
@@ -25,7 +25,6 @@ class CategoryViewSet(ListAddDeleteViewset):
     lookup_field = 'slug'
     serializer_class = CategorySerializer
     permission_classes = (IsAdminOrReadOnlyPermission,)
-    pagination_class = LimitOffsetPagination
     filter_backends = (filters.SearchFilter,)
     search_fields = ('name',)
 
@@ -35,7 +34,6 @@ class GenreViewSet(ListAddDeleteViewset):
     lookup_field = 'slug'
     serializer_class = GenreSerializer
     permission_classes = (IsAdminOrReadOnlyPermission,)
-    pagination_class = LimitOffsetPagination
     filter_backends = (filters.SearchFilter,)
     search_fields = ('name',)
 
@@ -43,100 +41,63 @@ class GenreViewSet(ListAddDeleteViewset):
 class TitleViewSet(viewsets.ModelViewSet):
     queryset = Title.objects.all()
     permission_classes = (IsAdminOrReadOnlyPermission,)
-    pagination_class = LimitOffsetPagination
-    filter_backends = [DjangoFilterBackend]
+    filter_backends = (DjangoFilterBackend,)
     filterset_class = GenreFilter
 
     def get_serializer_class(self):
-        if self.action in ('list', 'retrieve'):
-            return TitleReadSerializer
-        return TitleWriteSerializer
+        if self.action in ('create', 'update', 'partial_update'):
+            return TitleWriteSerializer
+        return TitleReadSerializer
 
 
 class ReviewViewSet(viewsets.ModelViewSet):
     serializer_class = ReviewSerializer
-    pagination_class = LimitOffsetPagination
-    permission_classes = (permissions.AllowAny,)
+    permission_classes = (ReviewAndComments,)
+
+    def get_title(self) -> Title:
+        title_qs = Title.objects.filter(pk=self.kwargs.get("title_id"))
+        if not title_qs.exists():
+            raise Http404
+        else:
+            return title_qs.first()
 
     def get_queryset(self):
-        return Review.objects.filter(title=self.kwargs.get("title_id"))
+        return Review.objects.filter(title=self.get_title())
 
-    def create(self, request, *args, **kwargs):
-        serializer = self.get_serializer(data=request.data)
+    def perform_create(self, serializer):
+        title = self.get_title()
         try:
-            title = Title.objects.get(pk=self.kwargs.get("title_id"))
-        except Title.DoesNotExist:
-            return Response(status=status.HTTP_404_NOT_FOUND)
-        if serializer.is_valid(raise_exception=False):
-            try:
-                serializer.save(
-                    title=title,
-                    author=self.request.user,
-                )
-                return Response(
-                    serializer.data, status=status.HTTP_201_CREATED,
-                )
-            except Exception:
-                pass
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-    def get_permissions(self):
-        if self.action in ['update', 'destroy', 'partial_update']:
-            return (IsAuthorOrModeratorOrAdmin(),)
-        elif self.action in ['create']:
-            return (permissions.IsAuthenticated(),)
-        return super().get_permissions()
+            serializer.save(
+                title=title,
+                author=self.request.user,
+            )
+        except IntegrityError:
+            raise ValidationError({
+                'title': 'Вы уже добавили отзыв на это произведение'
+            })
 
 
 class CommentViewSet(viewsets.ModelViewSet):
     serializer_class = CommentSerializer
-    pagination_class = LimitOffsetPagination
-    permission_classes = (permissions.AllowAny,)
-    http_method_names = ['get', 'post', 'patch', 'delete']
+    permission_classes = (ReviewAndComments,)
+    http_method_names = ('get', 'post', 'patch', 'delete')
+
+    def get_review(self) -> Review:
+        review_qs = Review.objects.filter(
+            pk=self.kwargs.get("review_id"),
+            title=self.kwargs.get("title_id")
+        )
+        if not review_qs.exists():
+            raise Http404
+        else:
+            return review_qs.first()
 
     def get_queryset(self):
-        return Comment.objects.filter(
-            review_id=self.kwargs.get("review_id"),
-            review_id__title_id=self.kwargs.get("title_id")
-        )
+        return Comment.objects.filter(review_id=self.get_review())
 
     def perform_create(self, serializer):
+        review = self.get_review()
         serializer.save(
-            review_id=Review.objects.get(pk=self.kwargs.get("review_id")),
+            review_id=review,
             author=self.request.user,
         )
-
-    def create(self, request, *args, **kwargs):
-        serializer = self.get_serializer(data=request.data)
-
-        try:
-            title = Title.objects.get(pk=self.kwargs.get("title_id"))
-        except Title.DoesNotExist:
-            return Response(status=status.HTTP_404_NOT_FOUND)
-
-        try:
-            review = Review.objects.get(
-                pk=self.kwargs.get("review_id"), title_id=title.pk)
-        except Review.DoesNotExist:
-            return Response(status=status.HTTP_404_NOT_FOUND)
-
-        if serializer.is_valid(raise_exception=False):
-            try:
-                serializer.save(
-                    review_id=review,
-                    author=self.request.user,
-                )
-                return Response(
-                    serializer.data, status=status.HTTP_201_CREATED,
-                )
-            except Exception:
-                pass
-
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-    def get_permissions(self):
-        if self.request.method == 'POST':
-            return (permissions.IsAuthenticated(),)
-        elif self.request.method in ['PATCH', 'DELETE']:
-            return (IsAuthorOrModeratorOrAdmin(),)
-        return super().get_permissions()

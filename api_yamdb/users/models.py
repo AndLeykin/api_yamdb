@@ -2,14 +2,18 @@ from django.contrib.auth.models import AbstractUser
 from django.db import models
 
 
+USER = 'user'
+ADMIN = 'admin'
+MODER = 'moderator'
 USER_ROLES = (
-    ('user', 'пользователь'),
-    ('admin', 'администратор'),
-    ('moderator', 'модератор'),
+    (USER, 'пользователь'),
+    (ADMIN, 'администратор'),
+    (MODER, 'модератор'),
 )
-ROLE_MAX_LENGTH = 10
+ROLE_MAX_LENGTH = 20
 SECRET_KEY_MAX_LENGTH = 256
 USERNAME_MAX_LENGTH = 150
+EMAIL_MAX_LENGTH = 254
 
 
 class User(AbstractUser):
@@ -21,26 +25,30 @@ class User(AbstractUser):
         'Тип пользователя',
         max_length=ROLE_MAX_LENGTH,
         choices=USER_ROLES,
-        default='user'
-    )
-    confirmation_code = models.CharField(
-        'Код подтверждения',
-        max_length=SECRET_KEY_MAX_LENGTH,
-        blank=True,
+        default=USER
     )
     password = models.CharField(
         'Пароль',
         max_length=SECRET_KEY_MAX_LENGTH,
         blank=True,
     )
+    email = models.EmailField(
+        'Почта',
+        max_length=EMAIL_MAX_LENGTH,
+    )
 
     @property
     def is_admin(self):
         """Проверяет, является ли пользователь администратором"""
         return (
-            self.role == 'admin'
+            self.role == ADMIN
             or self.is_superuser
         )
+
+    @property
+    def is_moderator(self):
+        """Проверяет, является ли пользователь модератором"""
+        return self.role == MODER
 
     class Meta:
         constraints = [

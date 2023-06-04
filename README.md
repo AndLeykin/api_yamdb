@@ -57,6 +57,20 @@ python3 manage.py migrate
 python3 manage.py createsuperuser
 ```
 
+Заполнить всю базу данных из csv-файлов:
+
+```
+python3 manage.py filldb
+```
+Опции команды заполнения для частичного заполнения базы данных:
+```
+--category
+--genre
+--user
+--title
+--review
+```
+
 Запустить проект:
 
 ```

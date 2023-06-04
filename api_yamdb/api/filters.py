@@ -9,4 +9,4 @@ class GenreFilter(filters.FilterSet):
 
     class Meta:
         model = Title
-        fields = ['genre', 'category', 'year', 'name']
+        fields = ('genre', 'category', 'year', 'name',)
