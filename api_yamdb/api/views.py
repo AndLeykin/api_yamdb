@@ -45,7 +45,7 @@ class TitleViewSet(viewsets.ModelViewSet):
     filterset_class = GenreFilter
 
     def get_serializer_class(self):
-        if self.action in ('list', 'retrieve'):
+        if self.action in ('create', 'update'):
             return TitleReadSerializer
         return TitleWriteSerializer
 

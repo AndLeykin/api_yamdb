@@ -24,7 +24,8 @@ class TitleWriteSerializer(serializers.ModelSerializer):
     genre = serializers.SlugRelatedField(
         many=True,
         queryset=Genre.objects.all(),
-        slug_field='slug'
+        slug_field='slug',
+        required=True
     )
     category = serializers.SlugRelatedField(
         queryset=Category.objects.all(),
@@ -44,8 +45,13 @@ class TitleWriteSerializer(serializers.ModelSerializer):
 
     def validate_year(self, value):
         year = dt.date.today().year
-        if value > year:
+        if value > year or value < 0:
             raise serializers.ValidationError('Проверьте год произведения!')
+        return value
+
+    def validate_genre(self, value):
+        if not value:
+            raise serializers.ValidationError('Необходимо указать жанр.')
         return value
 
 
