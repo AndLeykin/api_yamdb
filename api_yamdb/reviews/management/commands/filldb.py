@@ -1,5 +1,6 @@
 import csv
 import os
+from traceback import print_exc
 from django.core.management.base import BaseCommand
 
 from reviews.models import (
@@ -30,81 +31,29 @@ OPTIONS = {
     'title': ['title', 'review'],
     'review': ['review'],
 }
+FIELDS_FOR_ID = ['category', 'author']
 
 
-def fill(create_model, path_file, CurrentModel=None):
+def fill(path_file, CurrentModel):
     with open(path_file) as file_csv:
-        reader = csv.DictReader(file_csv)
+        instance = CurrentModel()
         try:
+            first_line = file_csv.readline().strip('\n')
+            keys = first_line.split(',')
+            file_csv.seek(0)
+            reader = csv.DictReader(file_csv)
             for line in reader:
-                create_model(line, CurrentModel)
-        except Exception as error:
-            print(error)
-    print('Перенесены данные из файла ', path_file)
-
-
-def fill_category_genre(line, CurrentModel):
-    instance = CurrentModel(
-        id=line['id'],
-        name=line['name'],
-        slug=line['slug'],
-    )
-    instance.save()
-
-
-def fill_user(line, *args, **kwargs):
-    instance = User(
-        id=line['id'],
-        username=line['username'],
-        email=line['email'],
-        role=line['role'],
-        bio=line['bio'],
-        first_name=line['first_name'],
-        last_name=line['last_name'],
-    )
-    instance.save()
-
-
-def fill_title(line, *args, **kwargs):
-    instance = Title(
-        id=line['id'],
-        name=line['name'],
-        year=line['year'],
-        category_id=line['category'],
-    )
-    instance.save()
-
-
-def fill_genre_title(line, *args, **kwargs):
-    instance = GenreTitle(
-        id=line['id'],
-        title_id=line['title_id'],
-        genre_id=line['genre_id'],
-    )
-    instance.save()
-
-
-def fill_review(line, *args, **kwargs):
-    instance = Review(
-        id=line['id'],
-        title_id=line['title_id'],
-        text=line['text'],
-        author_id=line['author'],
-        score=line['score'],
-        pub_date=line['pub_date'],
-    )
-    instance.save()
-
-
-def fill_comment(line, *args, **kwargs):
-    instance = Comment(
-        id=line['id'],
-        review_id=line['review_id'],
-        text=line['text'],
-        author_id=line['author'],
-        pub_date=line['pub_date'],
-    )
-    instance.save()
+                for key in keys:
+                    if key in FIELDS_FOR_ID:
+                        model_field = key + '_id'
+                    else:
+                        model_field = key
+                    setattr(instance, model_field, line[key])
+                instance.save()
+        except Exception:
+            print_exc()
+            exit()
+    print('Перенесены данные из файла', path_file)
 
 
 class Command(BaseCommand):
@@ -144,23 +93,23 @@ class Command(BaseCommand):
         if any(
             options[option] for option in OPTIONS['category']
         ) or (no_options):
-            fill(fill_category_genre, FILES_CSV['category'], Category)
+            fill(FILES_CSV['category'], Category)
         if any(
             options[option] for option in OPTIONS['genre']
         ) or no_options:
-            fill(fill_category_genre, FILES_CSV['genre'], Genre)
+            fill(FILES_CSV['genre'], Genre)
         if any(
             options[option] for option in OPTIONS['user']
         ) or no_options:
-            fill(fill_user, FILES_CSV['user'])
+            fill(FILES_CSV['user'], User)
         if any(
             options[option] for option in OPTIONS['title']
         ) or no_options:
-            fill(fill_title, FILES_CSV['title'])
-            fill(fill_genre_title, FILES_CSV['genre_title'])
+            fill(FILES_CSV['title'], Title)
+            fill(FILES_CSV['genre_title'], GenreTitle)
         if any(
             options[option] for option in OPTIONS['review']
         ) or no_options:
-            fill(fill_review, FILES_CSV['review'])
+            fill(FILES_CSV['review'], Review)
         if no_options:
-            fill(fill_comment, FILES_CSV['comment'])
+            fill(FILES_CSV['comment'], Comment)
