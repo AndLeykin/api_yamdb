@@ -93,11 +93,11 @@ class CommentViewSet(viewsets.ModelViewSet):
             return review_qs.first()
 
     def get_queryset(self):
-        return Comment.objects.filter(review_id=self.get_review())
+        return Comment.objects.filter(review=self.get_review())
 
     def perform_create(self, serializer):
         review = self.get_review()
         serializer.save(
-            review_id=review,
+            review=review,
             author=self.request.user,
         )

@@ -76,7 +76,7 @@ class GenreTitle(models.Model):
         ]
 
     def __str__(self):
-        return f'{self.title_id} {self.genre_id}'
+        return f'{self.title} {self.genre}'
 
 
 class Review(models.Model):
@@ -117,7 +117,7 @@ class Review(models.Model):
 
 
 class Comment(models.Model):
-    review_id = models.ForeignKey(
+    review = models.ForeignKey(
         Review,
         on_delete=models.CASCADE,
         related_name='comments',
@@ -139,5 +139,5 @@ class Comment(models.Model):
         verbose_name_plural = 'комментарии'
 
     def __str__(self):
-        return (f'Комментарий №{self.pk} к отзыву №{self.review_id.pk}'
+        return (f'Комментарий №{self.pk} к отзыву №{self.review.pk}'
                 'на книгу {self.title.name}')
