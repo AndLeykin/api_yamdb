@@ -1,5 +1,4 @@
 from rest_framework import serializers
-from rest_framework.validators import UniqueValidator
 import re
 
 from .models import (
@@ -32,13 +31,6 @@ class CustomTokenSerializer(serializers.Serializer):
 
 
 class UserSerializer(serializers.ModelSerializer):
-    email = serializers.EmailField(
-        required=True,
-        allow_blank=False,
-        max_length=EMAIL_MAX_LENGTH,
-        validators=[UniqueValidator(queryset=User.objects.all())]
-    )
-
     class Meta:
         model = User
         fields = (

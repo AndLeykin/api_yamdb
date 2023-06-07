@@ -35,6 +35,7 @@ class User(AbstractUser):
     email = models.EmailField(
         'Почта',
         max_length=EMAIL_MAX_LENGTH,
+        unique=True,
     )
 
     @property
@@ -55,10 +56,6 @@ class User(AbstractUser):
             models.CheckConstraint(
                 check=~models.Q(username__iexact='me'),
                 name='me_username_constraint',
-            ),
-            models.UniqueConstraint(
-                fields=['email'],
-                name='unique_email',
             ),
         ]
         ordering = ('-username',)
